@@ -1,0 +1,210 @@
+Enter password: ****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 12
+Server version: 8.0.41 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use sys;
+Database changed
+mysql> CREATE TABLE Department (
+    ->     dept_id INT PRIMARY KEY,
+    ->     dept_name VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> CREATE TABLE Employee (
+    ->     emp_id INT PRIMARY KEY,
+    ->     emp_name VARCHAR(50),
+    ->     salary DECIMAL(10,2),
+    ->     hire_date DATE,
+    ->     dept_id INT,
+    ->     FOREIGN KEY (dept_id) REFERENCES Department(dept_id)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> INSERT INTO Department VALUES
+    -> (1,'IT'),
+    -> (2,'HR'),
+    -> (3,'Finance');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql>
+mysql> INSERT INTO Employee VALUES
+    -> (101,'Rohit',60000,'2025-01-15',1),
+    -> (102,'Amit',75000,'2024-11-10',1),
+    -> (103,'Priya',55000,'2025-03-20',2),
+    -> (104,'Neha',80000,'2024-12-05',3),
+    -> (105,'Raj',70000,'2025-02-12',1),
+    -> (106,'Ankit',65000,'2025-04-01',2),
+    -> (107,'Pooja',85000,'2024-10-25',3);
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> ^C
+mysql> SELECT *
+    -> FROM Employee
+    -> ORDER BY salary DESC
+    -> LIMIT 5;
++--------+----------+----------+------------+---------+
+| emp_id | emp_name | salary   | hire_date  | dept_id |
++--------+----------+----------+------------+---------+
+|    107 | Pooja    | 85000.00 | 2024-10-25 |       3 |
+|    104 | Neha     | 80000.00 | 2024-12-05 |       3 |
+|    102 | Amit     | 75000.00 | 2024-11-10 |       1 |
+|    105 | Raj      | 70000.00 | 2025-02-12 |       1 |
+|    106 | Ankit    | 65000.00 | 2025-04-01 |       2 |
++--------+----------+----------+------------+---------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT dept_id, COUNT(*) AS employee_count
+    -> FROM Employee
+    -> GROUP BY dept_id;
++---------+----------------+
+| dept_id | employee_count |
++---------+----------------+
+|       1 |              3 |
+|       2 |              2 |
+|       3 |              2 |
++---------+----------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT MAX(salary) AS second_highest_salary
+    -> FROM Employee
+    -> WHERE salary <
+    -> (
+    ->     SELECT MAX(salary)
+    ->     FROM Employee
+    -> );
++-----------------------+
+| second_highest_salary |
++-----------------------+
+|              80000.00 |
++-----------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT e.*
+    -> FROM Employee e
+    -> JOIN
+    -> (
+    ->     SELECT dept_id, AVG(salary) avg_salary
+    ->     FROM Employee
+    ->     GROUP BY dept_id
+    -> ) d
+    -> ON e.dept_id = d.dept_id
+    -> WHERE e.salary > d.avg_salary;
++--------+----------+----------+------------+---------+
+| emp_id | emp_name | salary   | hire_date  | dept_id |
++--------+----------+----------+------------+---------+
+|    102 | Amit     | 75000.00 | 2024-11-10 |       1 |
+|    105 | Raj      | 70000.00 | 2025-02-12 |       1 |
+|    106 | Ankit    | 65000.00 | 2025-04-01 |       2 |
+|    107 | Pooja    | 85000.00 | 2024-10-25 |       3 |
++--------+----------+----------+------------+---------+
+4 rows in set (0.00 sec)
+
+mysql> SELECT e.emp_id,
+    ->        e.emp_name,
+    ->        d.dept_name
+    -> FROM Employee e
+    -> INNER JOIN Department d
+    -> ON e.dept_id = d.dept_id;
++--------+----------+-----------+
+| emp_id | emp_name | dept_name |
++--------+----------+-----------+
+|    101 | Rohit    | IT        |
+|    102 | Amit     | IT        |
+|    105 | Raj      | IT        |
+|    103 | Priya    | HR        |
+|    106 | Ankit    | HR        |
+|    104 | Neha     | Finance   |
+|    107 | Pooja    | Finance   |
++--------+----------+-----------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT e.emp_id,
+    ->        e.emp_name,
+    ->        d.dept_name
+    -> FROM Employee e
+    -> LEFT JOIN Department d
+    -> ON e.dept_id = d.dept_id;
++--------+----------+-----------+
+| emp_id | emp_name | dept_name |
++--------+----------+-----------+
+|    101 | Rohit    | IT        |
+|    102 | Amit     | IT        |
+|    103 | Priya    | HR        |
+|    104 | Neha     | Finance   |
+|    105 | Raj      | IT        |
+|    106 | Ankit    | HR        |
+|    107 | Pooja    | Finance   |
++--------+----------+-----------+
+7 rows in set (0.00 sec)
+
+mysql> SELECT dept_id,
+    ->        COUNT(*) AS total_employees
+    -> FROM Employee
+    -> GROUP BY dept_id
+    -> HAVING COUNT(*) > 2;
++---------+-----------------+
+| dept_id | total_employees |
++---------+-----------------+
+|       1 |               3 |
++---------+-----------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT *
+    -> FROM Employee
+    -> WHERE hire_date >= CURDATE() - INTERVAL 6 MONTH;
+Empty set (0.00 sec)
+
+mysql> SELECT emp_name,
+    ->        COUNT(*)
+    -> FROM Employee
+    -> GROUP BY emp_name
+    -> HAVING COUNT(*) > 1;
+Empty set (0.00 sec)
+
+mysql> DELETE e1
+    -> FROM Employee e1
+    -> JOIN Employee e2
+    -> ON e1.emp_name = e2.emp_name
+    -> AND e1.emp_id > e2.emp_id;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> show table employee;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'employee' at line 1
+mysql> shoe employee;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'shoe employee' at line 1
+mysql> select * from employee;
++--------+----------+----------+------------+---------+
+| emp_id | emp_name | salary   | hire_date  | dept_id |
++--------+----------+----------+------------+---------+
+|    101 | Rohit    | 60000.00 | 2025-01-15 |       1 |
+|    102 | Amit     | 75000.00 | 2024-11-10 |       1 |
+|    103 | Priya    | 55000.00 | 2025-03-20 |       2 |
+|    104 | Neha     | 80000.00 | 2024-12-05 |       3 |
+|    105 | Raj      | 70000.00 | 2025-02-12 |       1 |
+|    106 | Ankit    | 65000.00 | 2025-04-01 |       2 |
+|    107 | Pooja    | 85000.00 | 2024-10-25 |       3 |
++--------+----------+----------+------------+---------+
+7 rows in set (0.00 sec)
+
+mysql> select * from department;
++---------+-----------+
+| dept_id | dept_name |
++---------+-----------+
+|       1 | IT        |
+|       2 | HR        |
+|       3 | Finance   |
++---------+-----------+
+3 rows in set (0.00 sec)
+
+mysql>
