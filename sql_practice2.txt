@@ -1,0 +1,154 @@
+Enter password: ****
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 11
+Server version: 8.0.41 MySQL Community Server - GPL
+
+Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> use sys;
+Database changed
+mysql> SELECT emp_name,
+    ->        salary,
+    ->        CASE
+    ->            WHEN salary >= 80000 THEN 'High Salary'
+    ->            WHEN salary >= 65000 THEN 'Medium Salary'
+    ->            ELSE 'Low Salary'
+    ->        END AS salary_category
+    -> FROM Employee;
++----------+----------+-----------------+
+| emp_name | salary   | salary_category |
++----------+----------+-----------------+
+| Rohit    | 60000.00 | Low Salary      |
+| Amit     | 75000.00 | Medium Salary   |
+| Priya    | 55000.00 | Low Salary      |
+| Neha     | 80000.00 | High Salary     |
+| Raj      | 70000.00 | Medium Salary   |
+| Ankit    | 65000.00 | Medium Salary   |
+| Pooja    | 85000.00 | High Salary     |
+| Sneha    | 72000.00 | Medium Salary   |
+| Vikas    | 58000.00 | Low Salary      |
+| Karan    | 90000.00 | High Salary     |
+| Meera    | 67000.00 | Medium Salary   |
+| Sonal    | 62000.00 | Low Salary      |
++----------+----------+-----------------+
+12 rows in set (0.00 sec)
+
+mysql> CREATE VIEW Employee_Details AS
+    -> SELECT e.emp_id,
+    ->        e.emp_name,
+    ->        e.salary,
+    ->        d.dept_name
+    -> FROM Employee e
+    -> JOIN Department d
+    -> ON e.dept_id = d.dept_id;
+ERROR 1050 (42S01): Table 'Employee_Details' already exists
+mysql> SELECT * FROM Employee_Details;
++--------+----------+----------+-----------+
+| emp_id | emp_name | salary   | dept_name |
++--------+----------+----------+-----------+
+|    101 | Rohit    | 60000.00 | IT        |
+|    102 | Amit     | 75000.00 | IT        |
+|    105 | Raj      | 70000.00 | IT        |
+|    108 | Sneha    | 72000.00 | IT        |
+|    111 | Meera    | 67000.00 | IT        |
+|    103 | Priya    | 55000.00 | HR        |
+|    106 | Ankit    | 65000.00 | HR        |
+|    109 | Vikas    | 58000.00 | HR        |
+|    112 | Sonal    | 62000.00 | HR        |
+|    104 | Neha     | 80000.00 | Finance   |
+|    107 | Pooja    | 85000.00 | Finance   |
+|    110 | Karan    | 90000.00 | Finance   |
++--------+----------+----------+-----------+
+12 rows in set (0.00 sec)
+
+mysql> CREATE TABLE Employee_Log (
+    ->     emp_id INT,
+    ->     message VARCHAR(100)
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> CREATE TRIGGER trg_insert_employee
+    -> ON Employee
+    -> AFTER INSERT
+    -> AS
+    -> BEGIN
+    ->     INSERT INTO Employee_Log
+    ->     SELECT emp_id, 'New Employee Added'
+    ->     FROM inserted;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ON Employee
+AFTER INSERT
+AS
+BEGIN
+    INSERT INTO Employee_Log
+    SELECT emp_id' at line 2
+mysql> END;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'END' at line 1
+mysql> CREATE TRIGGER trg_insert_employee
+    -> ON Employee
+    -> AFTER INSERT
+    -> AS
+    -> BEGIN
+    ->     INSERT INTO Employee_Log
+    ->     SELECT emp_id, 'New Employee Added'
+    ->     FROM inserted;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ON Employee
+AFTER INSERT
+AS
+BEGIN
+    INSERT INTO Employee_Log
+    SELECT emp_id' at line 2
+mysql> SELECT * FROM Employee_Log;
+Empty set (0.00 sec)
+
+mysql> SELECT emp_id,
+    ->        emp_name,
+    ->        salary,
+    ->        RANK() OVER(ORDER BY salary DESC) AS salary_rank
+    -> FROM Employee;
++--------+----------+----------+-------------+
+| emp_id | emp_name | salary   | salary_rank |
++--------+----------+----------+-------------+
+|    110 | Karan    | 90000.00 |           1 |
+|    107 | Pooja    | 85000.00 |           2 |
+|    104 | Neha     | 80000.00 |           3 |
+|    102 | Amit     | 75000.00 |           4 |
+|    108 | Sneha    | 72000.00 |           5 |
+|    105 | Raj      | 70000.00 |           6 |
+|    111 | Meera    | 67000.00 |           7 |
+|    106 | Ankit    | 65000.00 |           8 |
+|    112 | Sonal    | 62000.00 |           9 |
+|    101 | Rohit    | 60000.00 |          10 |
+|    109 | Vikas    | 58000.00 |          11 |
+|    103 | Priya    | 55000.00 |          12 |
++--------+----------+----------+-------------+
+12 rows in set (0.00 sec)
+
+mysql> SELECT emp_id,
+    ->        emp_name,
+    ->        dept_id,
+    ->        salary,
+    ->        RANK() OVER(PARTITION BY dept_id ORDER BY salary DESC) AS dept_rank
+    -> FROM Employee;
++--------+----------+---------+----------+-----------+
+| emp_id | emp_name | dept_id | salary   | dept_rank |
++--------+----------+---------+----------+-----------+
+|    102 | Amit     |       1 | 75000.00 |         1 |
+|    108 | Sneha    |       1 | 72000.00 |         2 |
+|    105 | Raj      |       1 | 70000.00 |         3 |
+|    111 | Meera    |       1 | 67000.00 |         4 |
+|    101 | Rohit    |       1 | 60000.00 |         5 |
+|    106 | Ankit    |       2 | 65000.00 |         1 |
+|    112 | Sonal    |       2 | 62000.00 |         2 |
+|    109 | Vikas    |       2 | 58000.00 |         3 |
+|    103 | Priya    |       2 | 55000.00 |         4 |
+|    110 | Karan    |       3 | 90000.00 |         1 |
+|    107 | Pooja    |       3 | 85000.00 |         2 |
+|    104 | Neha     |       3 | 80000.00 |         3 |
++--------+----------+---------+----------+-----------+
+12 rows in set (0.00 sec)
